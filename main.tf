@@ -32,7 +32,16 @@ data "aws_ami" "al2023" {
   }
 }
 
+data "aws_vpc" "default" {
+  default = true
+}
+
 data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+
   filter {
     name   = "default-for-az"
     values = ["true"]
@@ -58,7 +67,7 @@ resource "aws_instance" "lab" {
   subnet_id                   = data.aws_subnets.default.ids[0]
   iam_instance_profile        = aws_iam_instance_profile.cloudwatch_agent.name
   user_data                   = file("${path.module}/user-data.sh")
-  associate_public_ip_address = false
+  associate_public_ip_address = true
 
   root_block_device {
     volume_type = "gp3"
